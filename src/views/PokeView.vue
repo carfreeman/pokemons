@@ -1,37 +1,27 @@
 <script setup>
-    import axios from 'axios';
-    import { ref } from 'vue';
     import { useRoute, useRouter } from 'vue-router';
+    import { useGetData } from '../composables/getData';
 
     const route = useRoute();
     const router = useRouter();
-    const pokeSprite = ref({});
 
     const back = () => {
-        router.push("/pokemons");
+        router.push('/pokemons');
     }
 
-    const getData = async () => {
-        console.log(route.params.name);
-        try{
-            const {data} = await axios.get(`https://pokeapi.co/api/v2/pokemon/${route.params.name}`);
-            pokeSprite.value = data.sprites.front_default;
-        }catch(error){
-            console.log(error);
-            pokeSprite.value = null;
-        }
-    };
-
-    getData();
+    const { data, error, loading, getData } = useGetData();
+    
+    getData(`https://pokeapi.co/api/v2/pokemon/${route.params.name}`);
 </script>
 
 <template>
-    <main class="text-center">
-        <div v-if="pokeSprite">
-            <img :src="pokeSprite" alt="" />
-            <h1>Poke: {{ $route.params.name }}</h1>
+    <div v-if="loading">Cargando...</div>
+    <div v-else>
+        <div v-if="data">
+            <img :src="data.sprites?.front_default" />
+            <h1>{{ $route.params.name }}</h1>
         </div>
-        <h1 v-else>Pokemon no encontrado</h1>
-        <button @click="back()">Volver al listado</button>
-    </main>
+        <h1 v-if="error">No existe el pokemon</h1>
+        <button @click="back" class="btn btn-outline-primary">Volver</button>
+    </div>
 </template>
